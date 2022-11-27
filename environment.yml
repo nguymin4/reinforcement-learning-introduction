@@ -1,0 +1,9 @@
+name: reinforcement-learning
+dependencies:
+  - black
+  - flake8
+  - matplotlib
+  - numpy
+  - pip
+  - python==3.11
+  - tqdm
