@@ -52,13 +52,17 @@ class FixedLearningStepGambler(Gambler):
 
 
 class UCBGambler(Gambler):
-    def __init__(self, total_actions: int = 10, exploration_degree: float = 1, **_kwargs):
+    def __init__(
+        self, total_actions: int = 10, exploration_degree: float = 1, **_kwargs
+    ):
         self.total_actions = total_actions
         self.exploration_degree = exploration_degree
         self.reset()
 
     def act(self):
-        ucb = self.Q + self.exploration_degree * np.sqrt(np.log(self.t) / (self.N + 1e-8))
+        ucb = self.Q + self.exploration_degree * np.sqrt(
+            np.log(self.t) / (self.N + 1e-8)
+        )
         return np.argmax(ucb)
 
     def update(self, action: int, reward: float):
@@ -70,3 +74,35 @@ class UCBGambler(Gambler):
         self.t = 1
         self.N = np.zeros(self.total_actions)
         self.Q = np.zeros(self.total_actions)
+
+
+class GradientGambler(Gambler):
+    def __init__(
+        self, total_actions: int = 10, step_size: float = 0.1, use_baseline=True, *kwargs
+    ):
+        self.total_actions = total_actions
+        self.step_size = step_size
+        self.use_baseline = use_baseline
+        self.reset()
+
+    def act(self):
+        exps = np.exp(self.H)
+        self.action_probs = exps / np.sum(exps)
+        return np.random.choice(self.total_actions, p=self.action_probs)
+
+    def update(self, action: int, reward: float):
+        onehot = np.zeros(self.total_actions)
+        onehot[action] = 1
+        self.H += (
+            self.step_size * (reward - self.baseline) * (onehot - self.action_probs)
+        )
+
+        self.t += 1
+        if self.use_baseline:
+            self.baseline += (reward - self.baseline) / self.t
+
+
+    def reset(self):
+        self.t = 0
+        self.baseline = 0
+        self.H = np.zeros(self.total_actions)
