@@ -49,3 +49,24 @@ class FixedLearningStepGambler(Gambler):
 
     def reset(self):
         self.Q = np.zeros(self.total_actions)
+
+
+class UCBGambler(Gambler):
+    def __init__(self, total_actions: int = 10, exploration_degree: float = 1, **_kwargs):
+        self.total_actions = total_actions
+        self.exploration_degree = exploration_degree
+        self.reset()
+
+    def act(self):
+        ucb = self.Q + self.exploration_degree * np.sqrt(np.log(self.t) / (self.N + 1e-8))
+        return np.argmax(ucb)
+
+    def update(self, action: int, reward: float):
+        self.t += 1
+        self.N[action] += 1
+        self.Q[action] += (reward - self.Q[action]) / self.N[action]
+
+    def reset(self):
+        self.t = 1
+        self.N = np.zeros(self.total_actions)
+        self.Q = np.zeros(self.total_actions)
