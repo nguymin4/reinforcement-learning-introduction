@@ -44,12 +44,19 @@ class WindyGridWorld:
             return -1, False
 
     def render(self, state_history: Optional[list[np.ndarray]] = None):
+        grid_map = self.grid_map.copy()
+        for idx, wind_velocity in enumerate(self.vertical_winds):
+            if wind_velocity > 0:
+                grid_map[:, idx] = wind_velocity + 2
+        grid_map[tuple(self.START_POINT)] = self.START
+        grid_map[tuple(self.FINISH_POINT)] = self.FINISH
+
         plt.figure(figsize=(8, 4))
         ax = sns.heatmap(
-            self.grid_map,
+            grid_map,
             cbar=False,
             square=True,
-            cmap=["white", "pink", "lightgreen"],
+            cmap=["white", "pink", "lightgreen", "#fef8e2", "#fef0c1"],
             linewidths=0.5,  # type:ignore
             linecolor="lightgray",
         )
